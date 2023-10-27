@@ -1,12 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
-const Home = ({ username }) => {
+const Home = () => {
   const navigate = useNavigate();
-
   const auth = getAuth();
-  const user = auth.currentUser;
+  const [username, setUsername] = useState(null);
 
   const handleLogout = () => {
     signOut(auth)
@@ -22,27 +21,19 @@ const Home = ({ username }) => {
       });
   };
 
-  if (user !== null) {
-    user.providerData.forEach((profile) => {
-      console.log("Sign-in provider: " + profile.providerId);
-      console.log("  Provider-specific UID: " + profile.uid);
-      console.log("  Email: " + profile.email);
-      //console.log("  Photo URL: " + profile.photoURL);
-      console.log(" Username: " + profile.displayName);
-    });
-  }
-
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in, see docs for a list of available properties
         // https://firebase.google.com/docs/reference/js/firebase.User
         const uid = user.uid;
-        // ...
+        // Access the user's profile to get the username
+        const displayName = user.displayName;
+        setUsername(displayName); // Set the username in the component's state
         console.log("uid", uid);
       } else {
         // User is signed out
-        // ...
+        setUsername(null); // Reset the username when the user signs out
         console.log("user is logged out");
       }
     });

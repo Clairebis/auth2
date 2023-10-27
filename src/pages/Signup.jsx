@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 
-const Signup = () => {
+export default function Signup() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -15,9 +15,11 @@ const Signup = () => {
 
     await createUserWithEmailAndPassword(auth, email, password, username)
       .then((userCredential) => {
-        // Signed in
+        // Signed in and create user
         const user = userCredential.user;
         console.log(user);
+        createUser(user.uid, email, username);
+
         navigate("/login");
         // ...
       })
@@ -28,6 +30,20 @@ const Signup = () => {
         // ..
       });
   };
+
+  async function createUser(uid, email, username) {
+    const url = `https://react-firebase-authentic-ba936-default-rtdb.europe-west1.firebasedatabase.app/users/${uid}.json`;
+    const response = await fetch(url, {
+      method: "PUT",
+      body: JSON.stringify({ email, username }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      console.log("New user created: ", data);
+    } else {
+      console.log("Sorry, something went wrong");
+    }
+  }
 
   return (
     <main>
@@ -85,6 +101,4 @@ const Signup = () => {
       </section>
     </main>
   );
-};
-
-export default Signup;
+}
