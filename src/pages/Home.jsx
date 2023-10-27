@@ -1,11 +1,27 @@
 import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const navigate = useNavigate();
   const auth = getAuth();
-  const [username, setUsername] = useState(null);
+  const uid = auth.currentUser.uid;
+  const [username, setUsername] = useState("");
+
+  const url = `https://react-firebase-authentic-ba936-default-rtdb.europe-west1.firebasedatabase.app/users/${uid}.json`;
+
+  useEffect(() => {
+    async function getUser() {
+      const response = await fetch(url);
+      const userData = await response.json();
+
+      if (userData) {
+        // if userData exists set states with values from userData (data from firestore)
+        setUsername(userData.username);
+      }
+    }
+    getUser();
+  }, [auth.currentUser, url]); // dependencies: useEffect is executed when auth.currentUser changes
 
   const handleLogout = () => {
     signOut(auth)
@@ -20,24 +36,6 @@ const Home = () => {
         console.log("Error signing out");
       });
   };
-
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        const uid = user.uid;
-        // Access the user's profile to get the username
-        const displayName = user.displayName;
-        setUsername(displayName); // Set the username in the component's state
-        console.log("uid", uid);
-      } else {
-        // User is signed out
-        setUsername(null); // Reset the username when the user signs out
-        console.log("user is logged out");
-      }
-    });
-  }, [auth]);
 
   return (
     <nav>
